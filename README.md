@@ -1,11 +1,11 @@
 # InvincibleVoice
 
-> **Empowering communication for those who cannot speak**
-
 InvincibleVoice (formerly Unmute) is a real-time voice communication system
 designed to help people who cannot speak communicate naturally with others. The
 system uses speech-to-text (STT), language models, and text-to-speech (TTS)
 technology to enable fluid conversations.
+
+Get more context about this project on [our official page](https://www.invincible-voice.com/).
 
 ## How it works
 
@@ -89,4 +89,4 @@ docker compose up
 
 ### Getting involved with the project
 
-We welcome contributions from everyone! Whether you're a seasoned developer or new to open source, there are many ways to get involved. We recommend heading to the issues page to see what needs to be done. When we see that something is a good fit for the project, we'll tag it with the "Help wanted" label. Issues that can be done by newcomers will be tagged with the "Good first issue" label. Also don't hesitate to open issues yourself if you see something that could be improved or if you have ideas for new features.
+We welcome contributions from everyone! Whether you're a seasoned developer or new to open source, there are many ways to get involved. We recommend heading to [the issues page](https://github.com/kyutai-labs/invincible-voice/issues) to see what needs to be done. When we see that something is a good fit for the project, we'll tag it with the "Help wanted" label. Issues that can be done by newcomers will be tagged with the "Good first issue" label. Also don't hesitate to open issues yourself if you see something that could be improved or if you have ideas for new features.
