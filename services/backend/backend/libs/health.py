@@ -1,0 +1,14 @@
+from functools import partial
+
+from backend.typing import HealthStatus
+from backend.service_discovery import async_ttl_cached
+
+
+@partial(async_ttl_cached, ttl_sec=0.5)
+async def get_health(
+    _none: None,
+):  # dummy param _none because caching function expects a single param as cache key.
+    return HealthStatus(
+        stt_up=True,
+        llm_up=True,
+    )

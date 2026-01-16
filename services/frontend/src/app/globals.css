@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+:root {
+  --green: #39F2AE;
+  --offwhite: #EFEFEF;
+  --lightgray: #9d9d9d;
+  /* #B5BCC5; */
+  --gray: #343434;
+  /* #8D949E; */
+  --darkgray: #191919;
+  /* #1e293b; */
+  --background: #121212;
+
+  /* for errors */
+  --red: #f55142;
+
+
+  font-family:
+    var(--font-satoshi),
+    system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 500;
+  font-size: 16px;
+
+  color-scheme: dark;
+  color: var(--offwhite);
+  background-color: var(--background);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+
+@theme {
+  /* TODO: deduplicate */
+  --color-green: var(--green);
+  --color-offwhite: var(--offwhite);
+  --color-lightgray: var(--lightgray);
+  --color-gray: var(--gray);
+  --color-darkgray: var(--darkgray);
+  --color-red: var(--red);
+  --color-background: var(--background);
+  /* sometimes it's useful to have these as variables too */
+  --color-white: #ffffff;
+
+  --font-family-satoshi: var(--font-satoshi);
+}
+
+/* For FireFox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #333 transparent;
+}
+
+/* For Chrome, EDGE, Opera, Others */
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-track:hover {
+  background: none;
+  border: none;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #f4f5f5;
+  background-clip: padding-box;
+  border: 4px solid transparent;
+  border-radius: 8px;
+  box-shadow: none;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #f4f5f5;
+}
+
+.white-to-green-gradient {
+  background-image: linear-gradient(270deg, #39F2AE -1.91%, #FFFFFF 15.25%);
+}
+
+.green-to-purple-via-blue-gradient {
+  background-image: linear-gradient(266.9deg, #39F2AE 0.07%, #5C9CFF 45.01%, #C189FF 94.5%);
+}
+
+.green-to-light-green-gradient {
+  background-image: linear-gradient(89.73deg, #2EE76F 57.13%, #39F2AE 99.86%);
+}
+
+.blue-to-light-blue-gradient {
+  background-image: linear-gradient(89.73deg, #5C9CFF 57.13%, #17E1F3 99.86%);
+}
+
+.light-green-to-green-gradient {
+  background-image: linear-gradient(266.9deg, #39F2AE 0.07%, #2EE76F 94.5%);
+}
+
+.orange-to-light-orange-gradient {
+  background-image: linear-gradient(89.73deg, #FF6459 57.13%, #FA9B26 99.86%);
+}
+
+.light-orange-to-orange-gradient {
+  background-image: linear-gradient(89.73deg, #FA9B26 57.13%, #FF6459 99.86%);
+}
+
+.purple-to-pink-gradient {
+  background-image: linear-gradient(89.73deg, #C189FF 57.13%, #FEA7FF 99.86%);
+}
+
+.black-to-light-green-via-white-gradient {
+  background-image: linear-gradient(90deg, #101010 27.88%, #FFFFFF 82.69%, #39F2AE 100%);
+}
+
+.black-to-light-green-via-white-gradient:hover {
+  background-image: linear-gradient(89.73deg, #2EE76F 57.13%, #39F2AE 99.86%);
+}
+
+.green-bubble-gradient {
+  background: linear-gradient(180deg, rgba(30, 31, 30, 0.4) 0%, rgba(57, 242, 174, 0.4) 100%);
+}
+
+.grey-bubble-gradient {
+  background: linear-gradient(180deg, rgba(30, 31, 30, 0.4) 0%, rgba(59, 56, 47, 0.4) 100%);
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-visible::-webkit-scrollbar {
+  all: unset;
+}
+
+.scrollbar-visible {
+  all: unset;
+}
+
+.scrollable *,
+.scrollable {
+  touch-action: auto !important;
+}
+
+.shadow-custom {
+  box-shadow: 0px 0px 24px 4px #00000066;
+}

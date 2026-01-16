@@ -1,0 +1,111 @@
+import uuid
+from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi.security import OAuth2PasswordRequestForm
+
+from backend.typing import UserSettings, GoogleAuthRequest
+from backend.libs.google import verify_google_token
+from backend.storage import get_user_data_path, get_user_data_from_storage, UserData
+from backend.security import verify_password, create_access_token, hash_password
+
+auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+
+@auth_router.post("/login")
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = get_user_data_from_storage(form_data.username)
+
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+        )
+    token = create_access_token({"sub": user.email})
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+    }
+
+
+@auth_router.post("/register")
+def register(form_data: OAuth2PasswordRequestForm = Depends()):
+    user_data_path = get_user_data_path(form_data.username)
+    if user_data_path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+        )
+
+    hashed_password = hash_password(form_data.password)
+    user = UserData(
+        user_id=uuid.uuid4(),
+        email=form_data.username,
+        google_sub=None,
+        hashed_password=hashed_password,
+        user_settings=UserSettings(
+            name="New name",
+            prompt="",
+            additional_keywords=[
+                "manger",
+                "dormir",
+                "sortir",
+                "discuter",
+                "reflechir",
+                "cinema",
+                "theatre",
+            ],
+            friends=[],
+        ),
+        conversations=[],
+    )
+    user.save()
+
+    token = create_access_token({"sub": form_data.username})
+    return {
+        "access_token": token,
+        "token_type": "bearer",
+    }
+
+
+@auth_router.post("/google")
+def google_login(data: GoogleAuthRequest):
+    google_user = verify_google_token(data.token)
+
+    email = google_user["email"]
+
+    try:
+        user = get_user_data_from_storage(email)
+        if user.google_sub is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Account exists, login with password",
+            )
+    except:
+        user = UserData(
+            user_id=uuid.uuid4(),
+            email=email,
+            google_sub=google_user["sub"],
+            hashed_password="",
+            user_settings=UserSettings(
+                name="New name",
+                prompt="",
+                additional_keywords=[
+                    "manger",
+                    "dormir",
+                    "sortir",
+                    "discuter",
+                    "reflechir",
+                    "cinema",
+                    "theatre",
+                ],
+                friends=[],
+            ),
+            conversations=[],
+        )
+        user.save()
+
+    jwt_token = create_access_token({"sub": user.email})
+
+    return {
+        "access_token": jwt_token,
+        "token_type": "bearer",
+    }

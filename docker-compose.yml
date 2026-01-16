@@ -1,0 +1,81 @@
+services:
+  traefik:
+    image: traefik:v3.6.6
+    command:
+      # Compose provider configuration
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+
+      # EntryPoints for HTTP and HTTPS
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+
+      # Redirect HTTP to HTTPS
+      #- "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      #- "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+
+      - "--providers.docker.constraints=Label(`pub_port`,`80`)"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.middlewares=strip-api,auth-invincible"
+      - "traefik.http.middlewares.strip-api.replacepathregex.regex=^/api/(.*)"
+      - "traefik.http.middlewares.strip-api.replacepathregex.replacement=/$$1"
+    ports:
+      - "80:80"
+      #- "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+
+  frontend:
+    image: incincible-voice-frontend:latest
+    build:
+      context: services/frontend/
+      dockerfile: hot-reloading.Dockerfile
+    volumes:
+      - ./services/frontend/src:/app/src
+    environment:
+      - NEXT_PUBLIC_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+    labels:
+      - "traefik.enable=true"
+      - "pub_port=80"
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+      - "traefik.http.routers.frontend.priority=10" # lowest priority
+
+  backend:
+    image: incincible-voice-backend:latest
+    platform: linux/amd64
+    build:
+      context: services/backend
+      target: hot-reloading
+    volumes:
+      - ./services/backend/backend:/app/backend
+      - ./volumes/users_data:/users_data
+    environment:
+      - KYUTAI_LLM_URL=${KYUTAI_LLM_URL}
+      - KYUTAI_LLM_API_KEY=${KYUTAI_LLM_API_KEY}
+      - KYUTAI_LLM_MODEL=${KYUTAI_LLM_MODEL}
+      - KYUTAI_USERS_DATA_PATH=/users_data
+      - SECRET_KEY=${SECRET_KEY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GRADIUM_API_KEY=${GRADIUM_API_KEY}
+      - TTS_VOICE_ID=${TTS_VOICE_ID}
+      - STT_IS_GRADIUM=${STT_IS_GRADIUM}
+      - KYUTAI_STT_URL=${KYUTAI_STT_URL}
+      - TTS_IS_GRADIUM=${TTS_IS_GRADIUM}
+      - TTS_SERVER=${TTS_SERVER}
+      - KYUTAI_API_KEY=${KYUTAI_API_KEY}
+    labels:
+      - "traefik.enable=true"
+      - "pub_port=80"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.middlewares=strip-api"
+      - "traefik.http.middlewares.strip-api.replacepathregex.regex=^/api/(.*)"
+      - "traefik.http.middlewares.strip-api.replacepathregex.replacement=/$$1"
+      - "traefik.http.routers.backend.entrypoints=web"
+      - "traefik.http.services.backend.loadbalancer.server.port=80"
+      - "traefik.http.routers.backend.priority=100" # higher priority than frontend
+      - "prometheus-port=80"
+
+networks:
+  default:

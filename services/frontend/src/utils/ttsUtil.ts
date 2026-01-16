@@ -1,0 +1,109 @@
+import { addAuthHeaders } from '../auth/authUtils';
+import { ttsCache, CacheType } from './ttsCache';
+
+export interface TTSOptions {
+  text: string;
+  cacheType?: CacheType;
+  messageId: string;
+}
+
+/**
+ * Plays TTS audio progressively using streaming
+ * @param options - TTS options including text, cacheType
+ */
+export async function playTTSStream(
+  options: TTSOptions,
+): Promise<AudioContext> {
+  const SAMPLE_RATE = 48000;
+  const { text, messageId, cacheType = 'temporary' } = options;
+  const audioContext = new AudioContext({ sampleRate: SAMPLE_RATE });
+
+  if (ttsCache.get(text)) {
+    const fullAudio = ttsCache.get(text)!;
+    const audioBuffer = audioContext.createBuffer(
+      1,
+      fullAudio?.length,
+      SAMPLE_RATE,
+    );
+    audioBuffer.copyToChannel(fullAudio, 0);
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(audioContext.destination);
+    source.start();
+
+    return audioContext;
+  }
+
+  let nextStartTime = 0;
+  let isFirstChunk = true;
+
+  const response = await fetch(`/api/v1/tts/`, {
+    method: 'POST',
+    headers: addAuthHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ text, message_id: messageId }),
+  });
+
+  if (!response.ok || !response.body) {
+    throw new Error('TTS streaming failed');
+  }
+
+  const reader = response.body.getReader();
+  const audioChunks: Float32Array[] = [];
+  const processChunks = async () => {
+    while (true) {
+      // eslint-disable-next-line no-await-in-loop
+      const { value, done } = await reader.read();
+      if (done) {
+        break;
+      }
+
+      const pcmArrayBuffer = value.buffer;
+      const numberOfFrames = pcmArrayBuffer.byteLength / 2;
+      const audioBuffer = audioContext.createBuffer(
+        1,
+        numberOfFrames,
+        SAMPLE_RATE,
+      );
+      const pcmInt16View = new Int16Array(pcmArrayBuffer);
+      const pcmFloat32Data = new Float32Array(numberOfFrames);
+
+      for (let i = 0; i < numberOfFrames; i += 1) {
+        pcmFloat32Data[i] = pcmInt16View[i] / 32768.0;
+      }
+
+      audioBuffer.copyToChannel(pcmFloat32Data, 0);
+      audioChunks.push(pcmFloat32Data);
+
+      const source = audioContext.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioContext.destination);
+
+      if (isFirstChunk) {
+        // Start immediately (with a tiny buffer to avoid underrun)
+        nextStartTime = audioContext.currentTime + 0.01;
+        isFirstChunk = false;
+      }
+
+      source.start(nextStartTime);
+      nextStartTime += audioBuffer.duration;
+    }
+  };
+
+  await processChunks();
+
+  let fullMessageLength = 0;
+  for (let i = 0; i < audioChunks.length; i += 1) {
+    fullMessageLength += audioChunks[i].length;
+  }
+  let index = 0;
+  const fullMessageBuffer = new Float32Array(fullMessageLength);
+  for (let i = 0; i < audioChunks.length; i += 1) {
+    for (let j = 0; j < audioChunks[i].length; j += 1) {
+      fullMessageBuffer[index] = audioChunks[i][j];
+      index += 1;
+    }
+  }
+  ttsCache.set(text, fullMessageBuffer, cacheType);
+
+  return audioContext;
+}

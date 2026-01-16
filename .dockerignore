@@ -1,0 +1,17 @@
+*.egg-info
+*.pyc
+
+debug/
+recordings/
+.venv/
+
+Dockerfile
+
+services/frontend/node_modules
+services/frontend/.next
+volumes/
+notebooks/
+voices/
+
+services/web-tts-frontend-olivier/node_modules/
+image.png

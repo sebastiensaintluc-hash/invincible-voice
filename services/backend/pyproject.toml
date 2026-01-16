@@ -1,0 +1,72 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "Make text LLMs listen and speak"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi[standard]>=0.115.12",
+    "fastrtc==0.0.23",
+    "mistralai>=1.5.1",
+    "msgpack>=1.1.0",
+    "msgpack-types>=0.5.0",
+    "openai>=1.70.0",
+    "plotly>=6.0.1",
+    "sphn>=0.2.0",
+    "prometheus-fastapi-instrumentator==7.1.0",
+    "prometheus-client==0.21.0",
+    "ruamel-yaml>=0.18.10",
+    "redis>=6.0.0",
+    "aiohttp>=3.12.13",
+    "humanize>=4.12.3",
+    "gradium==0.5.4",
+    "pyjwt==2.10.1",
+    "pwdlib[argon2]",
+    "google-auth",
+    "av==14.0.1",
+]
+
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages]
+find = { include = ["backend"] }
+
+[tool.ruff.lint]
+select = [
+    "B",    # bugbear
+    "E",    # pep8 rules
+    "F",    # pyflakes
+    "I001", # isort
+    "W",    # pep8 warnings
+    # pydocstyle - check that all arguments are documented
+    # It can make sense to add other "D" checks for more docstring
+    # consistency, but some of them are really pedantic - like requiring
+    # function-level docstrings for every single function
+    "D417",
+]
+
+ignore = [
+    # Line too long errors. Ruff format --fix will fix most of these
+    # and sometimes we want to keep long strings in one line etc.
+    "E501",
+]
+
+pydocstyle.convention = "google" # Google docstring style
+
+[tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
+
+
+[dependency-groups]
+dev = [
+    "jupyter>=1.1.1",
+    "pytest>=8.3.5",
+    "pytest-asyncio>=0.26.0",
+    "pyright",
+    "ruff",
+    "pre-commit",
+    "pyinstrument",
+    "ffmpeg-normalize>=1.31.3",
+]

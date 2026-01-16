@@ -1,0 +1,202 @@
+// TypeScript types equivalent to the Pydantic models in services/backend/backend/storage.py
+import { addAuthHeaders } from '../auth/authUtils';
+
+/**
+ * Represents a message from a speaker (user input)
+ */
+export interface SpeakerMessage {
+  speaker: string;
+  content: string;
+}
+
+/**
+ * Represents a message from the writer (AI response)
+ */
+export interface WriterMessage {
+  content: string;
+  messageId: string; // UUID as string in TypeScript
+}
+
+/**
+ * Union type for conversation messages
+ */
+export type ConversationMessage = SpeakerMessage | WriterMessage;
+
+/**
+ * Represents a conversation containing multiple messages
+ */
+export interface Conversation {
+  messages: ConversationMessage[];
+  start_time: string; // ISO 8601 datetime string from backend
+}
+
+/**
+ * Represents a document with title and content
+ */
+export interface Document {
+  title: string;
+  content: string;
+}
+
+/**
+ * User settings and preferences
+ */
+export interface UserSettings {
+  name: string;
+  prompt: string;
+  additional_keywords: string[];
+  friends: string[];
+  documents: Document[];
+  thinking_mode: boolean;
+}
+
+/**
+ * Complete user data structure
+ */
+export interface UserData {
+  user_id: string; // UUID as string in TypeScript
+  user_settings: UserSettings;
+  conversations: Conversation[];
+}
+
+/**
+ * Type guard to check if a message is from a speaker
+ */
+export function isSpeakerMessage(
+  message: ConversationMessage,
+): message is SpeakerMessage {
+  return 'speaker' in message;
+}
+
+/**
+ * Type guard to check if a message is from a writer
+ */
+export function isWriterMessage(
+  message: ConversationMessage,
+): message is WriterMessage {
+  return 'messageId' in message;
+}
+
+/**
+ * API response wrapper for error handling
+ */
+interface ApiResponse<T> {
+  data?: T;
+  error?: string;
+  status: number;
+}
+
+/**
+ * Fetches user data from the backend API
+ * GET /v1/user/
+ *
+ * @returns Promise<ApiResponse<UserData>>
+ */
+export async function getUserData(): Promise<ApiResponse<UserData>> {
+  try {
+    const url = `/api/v1/user/`;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: addAuthHeaders({
+        'Content-Type': 'application/json',
+      }),
+    });
+
+    if (!response.ok) {
+      return {
+        error: `Failed to fetch user data: ${response.status} ${response.statusText}`,
+        status: response.status,
+      };
+    }
+
+    const data: UserData = await response.json();
+
+    return {
+      data,
+      status: response.status,
+    };
+  } catch (error) {
+    return {
+      error: `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      status: 0,
+    };
+  }
+}
+
+/**
+ * Updates user settings on the backend API
+ * POST /v1/user/settings
+ *
+ * @param settings - The updated user settings
+ * @returns Promise<ApiResponse<void>>
+ */
+export async function updateUserSettings(
+  settings: UserSettings,
+): Promise<ApiResponse<void>> {
+  try {
+    const url = `/api/v1/user/settings`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: addAuthHeaders({
+        'Content-Type': 'application/json',
+      }),
+      body: JSON.stringify(settings),
+    });
+
+    if (!response.ok) {
+      return {
+        error: `Failed to update user settings: ${response.status} ${response.statusText}`,
+        status: response.status,
+      };
+    }
+
+    return {
+      status: response.status,
+    };
+  } catch (error) {
+    return {
+      error: `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      status: 0,
+    };
+  }
+}
+
+/**
+ * Deletes a conversation from the backend API
+ * DELETE /v1/user/conversations/{conversation_id}
+ *
+ * @param conversationId - The index of the conversation to delete
+ * @returns Promise<ApiResponse<void>>
+ */
+export async function deleteConversation(
+  conversationId: number,
+): Promise<ApiResponse<void>> {
+  try {
+    const url = `/api/v1/user/conversations/${conversationId}`;
+
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: addAuthHeaders({
+        'Content-Type': 'application/json',
+      }),
+    });
+
+    if (!response.ok) {
+      return {
+        error: `Failed to delete conversation: ${response.status} ${response.statusText}`,
+        status: response.status,
+      };
+    }
+
+    return {
+      status: response.status,
+    };
+  } catch (error) {
+    return {
+      error: `Network error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      status: 0,
+    };
+  }
+}
