@@ -1,6 +1,3 @@
-# InvincibleVoice
-
-
 ![logo](images/logo.png)
 
 
