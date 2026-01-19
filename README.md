@@ -1,31 +1,32 @@
 ![logo](https://raw.githubusercontent.com/kyutai-labs/invincible-voice/refs/heads/main/images/logo.png)
 
 
-InvincibleVoice (formerly Unmute) is a real-time voice communication system
+InvincibleVoice is a real-time voice communication system
 designed to help people who cannot speak communicate naturally with others. The
-system uses speech-to-text (STT), language models, and text-to-speech (TTS)
-technology to enable fluid conversations.
+system uses speech-to-text (STT), large language model (LLM) and text-to-speech (TTS)
+technologies to enable fluid conversations.
 
 Get more context about this project on [our official page](https://www.invincible-voice.com/).
 
 ## How it works
 
-It is very similar to the [Unmute project](https://github.com/kyutai-labs/unmute), the main difference is that instead of having a TTS read whatever the LLM answers, we ask the LLM to provide multiple possible answers and the TTS will only play the answer selected by the user.
+It is very similar to the [Unmute project](https://github.com/kyutai-labs/unmute), the main difference is that instead of having a TTS read out whatever the LLM answers, we ask the LLM to provide multiple possible answers and the TTS only plays the one selected by the user.
 
-Of course the app has more features than just this, but this is the core idea.
+Of course this experimental system has more features than just this, but this is the core idea.
 
 ## 🚀 Getting Started
 
-We want to provide an free online demo at some point in the future, but for the moment, the only way try the project is to run it locally.
-We have two ways of doing this, we recommend starting with the Gradium + Cerebras option as it is easier to set up, and moving to the fully self-hosted option (Kyutai TTS/STT + vLLM) once you are more confortable with the project:
+We plan to open soon an online version of the system, with TTS freely provived by Gradiumm. In the meantime, we explain below how insall and run it locally, for developpers to start exploring it. 
 
-### Using Gradium for TTS, STT and using an OpenAI compatible LLM service
+We provide two ways of doing this (see below); we recommend starting with the Gradium + Cerebras option, as it is easier to set up, and moving to the fully self-hosted option (Kyutai TTS/STT + vLLM) once you are more confortable with the project.
+
+### Using Gradium for TTS and STT, and an LLM service compatible with the OpenAI API
 
 This is the easiest way to get started since it doesn't require a GPU nor much setup.
 
 #### The LLM service
 
-For the LLM, we recommend grabbing a key from [Cerebras](https://www.cerebras.ai/) the reason we recommend Cerebras is that they have a very low latency and high throughput API, which is great for fast suggestions in the InvincibleVoice UI. The free tier is enough to get you started.
+For the LLM, we recommend grabbing a key from [Cerebras](https://www.cerebras.ai/) as Cerebras has a very low latency and high throughput API, which is great for fast suggestions in the InvincibleVoice UI. The free tier is enough to get you started.
 We recommend:
 ```
 export KYUTAI_LLM_URL=https://api.cerebras.ai/v1
@@ -37,7 +38,7 @@ Of course anything else works as long as it is OpenAI compatible. Latency and th
 
 #### The audio services
 
-You can use [Gradium](https://gradium.ai/) for TTS and STT, as well as any LLM provider for the LLM api. This is the easiest way to get started as it requires less setup.
+You can use [Gradium](https://gradium.ai/) for TTS and STT, as well as any LLM provider for the LLM api. This is the easiest way to get started as it requires little setup.
 
 Concerning the TTS and STT, grab an api key from Gradium, the free tier should be enough to get you started.
 
@@ -56,13 +57,13 @@ and then
 docker compose up
 ```
 
-### Using a text-to-speech and speech-to-text from Kyutai as well as a self-hosted LLM
+### Using STT/TTS from Kyutai along with a self-hosted LLM
 
-If you have enough compute power, you can run the entire stack locally. This has the advantage of complete privacy and completely owning your stack and data but is more involved. This is nice for commercial use.
+If you have enough compute power, you can run the entire stack locally. This has the advantage of complete privacy and completely ownership of stack and data, but is more involved. This is nice for commercial use.
 
 #### The LLM service
 
-We recommend using [vLLM](https://docs.vllm.ai/en/stable/) or an equivalent llm engine.
+We recommend using [vLLM](https://docs.vllm.ai/en/stable/) or an equivalent LLM engine.
 The environment variables you need to set are:
 ```
 export KYUTAI_LLM_URL=http://localhost:8000
@@ -71,7 +72,7 @@ export KYUTAI_LLM_MODEL=qwen-3-235b-a22b-instruct-2507  # or similar
 
 #### The audio services
 
-You'll need to set up both a TTS server and a STT server from Kyutai. For the moment we only support the server of [Delayed Stream Modelling](https://github.com/kyutai-labs/delayed-streams-modeling).
+You'll need to set up both a TTS server and an STT server from Kyutai. For the moment we only support the server of [Delayed Stream Modelling](https://github.com/kyutai-labs/delayed-streams-modeling).
 
 Then you need to set the following environment variables:
 ```
