@@ -11,7 +11,7 @@ from backend.kyutai_constants import (
     KYUTAI_API_KEY,
     TTS_IS_GRADIUM,
     TTS_SERVER,
-    get_tts_setup,
+    TTS_VOICE_ID,
 )
 from backend.routes.user import get_current_user
 from backend.storage import UserData
@@ -23,18 +23,21 @@ tts_router = APIRouter(prefix="/v1/tts", tags=["TTS"])
 
 @tts_router.post("/")
 async def text_to_speech(
-    request: TTSRequest, _: Annotated[UserData, Depends(get_current_user)]
+    request: TTSRequest, user: Annotated[UserData, Depends(get_current_user)]
 ) -> Response:
+    # Override voice if user has selected one
+    if user.user_settings.voice:
+        voice = user.user_settings.voice
+    else:
+        voice = TTS_VOICE_ID
     if TTS_IS_GRADIUM:
         client = gradium.client.GradiumClient(
             base_url="https://eu.api.gradium.ai/api/",
         )
-
-        # Get TTS setup configuration from constants
-        setup = get_tts_setup()
-
         # Gradium streaming response
-        stream = await client.tts_stream(setup, text=request.text)
+        stream = await client.tts_stream(
+            {"voice_id": voice, "output_format": "pcm"}, text=request.text
+        )
 
         async def pcm_audio_generator():
             async for chunk in stream.iter_bytes():
@@ -49,10 +52,9 @@ async def text_to_speech(
             },
         )
 
-    # Use Kyutai TTS
     query = {
         "text": request.text,
-        "voice": "unmute-prod-website/developer-1.mp3",
+        "voice": voice,
         "temperature": 0.8,
     }
 
@@ -68,7 +70,7 @@ async def text_to_speech(
     data = response.content
 
     async def audio_generator() -> AsyncIterator[bytes]:
-        yield data  # Maybe data.bytes ?
+        yield data
 
     return StreamingResponse(
         audio_generator(),
