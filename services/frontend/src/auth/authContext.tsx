@@ -24,6 +24,8 @@ export type AuthStatus = (typeof AUTH_STATUSES)[AuthStatusKeys];
 interface AuthContextInterface {
   authStatus: AuthStatus;
   authError: boolean;
+  allowPassword: boolean;
+  googleClientId: string;
   register: (email: string, password: string) => void;
   signIn: (email: string, password: string) => void;
   googleSignIn: (googleToken: string) => void;
@@ -33,6 +35,8 @@ interface AuthContextInterface {
 export const AuthContext = createContext<AuthContextInterface>({
   authStatus: AUTH_STATUSES.NOT_CHECKED,
   authError: false,
+  allowPassword: true,
+  googleClientId: '',
   register: () => {},
   signIn: () => {},
   googleSignIn: () => {},
@@ -46,6 +50,8 @@ const AuthProvider: FC<PropsWithChildren> = ({ children = null }) => {
   const [authStatus, setAuthStatus] = useState<AuthStatus>(
     AUTH_STATUSES.NOT_CHECKED,
   );
+  const [allowPassword, setAllowPassword] = useState<boolean>(true);
+  const [googleClientId, setGoogleClientId] = useState<string>('');
   const router = useRouter();
   const signOut = useCallback(() => {
     new Cookies().remove('bearerToken');
@@ -116,8 +122,26 @@ const AuthProvider: FC<PropsWithChildren> = ({ children = null }) => {
   }, []);
 
   const memoizedValue = useMemo(
-    () => ({ authStatus, authError, register, signIn, googleSignIn, signOut }),
-    [authStatus, authError, register, signIn, googleSignIn, signOut],
+    () => ({
+      authStatus,
+      authError,
+      allowPassword,
+      googleClientId,
+      register,
+      signIn,
+      googleSignIn,
+      signOut,
+    }),
+    [
+      authStatus,
+      authError,
+      allowPassword,
+      googleClientId,
+      register,
+      signIn,
+      googleSignIn,
+      signOut,
+    ],
   );
 
   useEffect(() => {
@@ -147,6 +171,38 @@ const AuthProvider: FC<PropsWithChildren> = ({ children = null }) => {
     }
 
     checkAuthStatus();
+  }, []);
+
+  useEffect(() => {
+    async function checkAllowPassword() {
+      try {
+        const response = await fetch('/api/auth/allow-password');
+        if (response.ok) {
+          const data = await response.json();
+          setAllowPassword(data.allow_password);
+        }
+      } catch {
+        setAllowPassword(true);
+      }
+    }
+
+    checkAllowPassword();
+  }, []);
+
+  useEffect(() => {
+    async function fetchGoogleClientId() {
+      try {
+        const response = await fetch('/api/auth/google-client-id');
+        if (response.ok) {
+          const data = await response.json();
+          setGoogleClientId(data.google_client_id);
+        }
+      } catch {
+        setGoogleClientId('');
+      }
+    }
+
+    fetchGoogleClientId();
   }, []);
 
   return (

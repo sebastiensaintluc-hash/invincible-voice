@@ -4,9 +4,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from typing_extensions import Annotated
 
+from backend.kyutai_constants import ALLOW_PASSWORD, GOOGLE_CLIENT_ID
 from backend.libs.google import verify_google_token
 from backend.security import create_access_token, hash_password, verify_password
-from backend.storage import UserData, get_user_data_from_storage, get_user_data_path
+from backend.storage import (
+    UserData,
+    UserDataNotFoundError,
+    get_user_data_from_storage,
+    get_user_data_path,
+)
 from backend.typing import GoogleAuthRequest, UserSettings
 
 auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -16,6 +22,11 @@ auth_router = APIRouter(prefix="/auth", tags=["Authentication"])
 def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ):
+    if not ALLOW_PASSWORD:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password-based login is disabled",
+        )
     user = get_user_data_from_storage(form_data.username)
 
     if not user or not verify_password(form_data.password, user.hashed_password):
@@ -34,6 +45,11 @@ def login(
 def register(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ):
+    if not ALLOW_PASSWORD:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password-based registration is disabled",
+        )
     user_data_path = get_user_data_path(form_data.username)
     if user_data_path.exists():
         raise HTTPException(
@@ -85,7 +101,7 @@ def google_login(data: GoogleAuthRequest):
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Account exists, login with password",
             )
-    except FileNotFoundError:
+    except UserDataNotFoundError:
         user = UserData(
             user_id=uuid.uuid4(),
             email=email,
@@ -115,3 +131,14 @@ def google_login(data: GoogleAuthRequest):
         "access_token": jwt_token,
         "token_type": "bearer",
     }
+
+
+@auth_router.get("/allow-password")
+def allow_password() -> dict[str, bool]:
+    return {"allow_password": ALLOW_PASSWORD}
+
+
+@auth_router.get("/google-client-id")
+def google_client_id() -> dict[str, str]:
+    print(GOOGLE_CLIENT_ID)
+    return {"google_client_id": GOOGLE_CLIENT_ID}
