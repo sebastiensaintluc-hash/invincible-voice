@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { useCallback, useMemo } from 'react';
 import ChatBubble from '@/components/icons/ChatBubble';
 import NewConversation from '@/components/icons/NewConversation';
+import { useTranslations } from '@/i18n';
 import { cn } from '@/utils/cn';
 import {
   Conversation,
@@ -18,9 +19,12 @@ interface ConversationHistoryProps {
   onDeleteConversation: (index: number) => void;
 }
 
-const formatConversationPreview = (conversation: Conversation): string => {
+const formatConversationPreview = (
+  conversation: Conversation,
+  t: (key: string) => string,
+): string => {
   if (conversation.messages.length === 0) {
-    return 'Empty conversation';
+    return t('conversation.emptyConversation');
   }
 
   const firstMessage = conversation.messages[0];
@@ -31,7 +35,7 @@ const formatConversationPreview = (conversation: Conversation): string => {
     return firstMessage.content;
   }
 
-  return 'Conversation';
+  return t('conversation.newChat');
 };
 
 const getConversationMessageCount = (conversation: Conversation): string => {
@@ -40,7 +44,10 @@ const getConversationMessageCount = (conversation: Conversation): string => {
     : conversation.messages.length.toString();
 };
 
-const formatConversationDate = (conversation: Conversation): string => {
+const formatConversationDate = (
+  conversation: Conversation,
+  t: (key: string) => string,
+): string => {
   if (!conversation.start_time) {
     return '';
   }
@@ -67,7 +74,7 @@ const formatConversationDate = (conversation: Conversation): string => {
       });
     }
     if (diffInDays === 1) {
-      return 'Yesterday';
+      return t('conversation.yesterday');
     }
     if (diffInDays < 7) {
       return date.toLocaleDateString([], { weekday: 'short' });
@@ -96,6 +103,7 @@ const ConversationHistory = ({
   onNewConversation,
   onDeleteConversation,
 }: ConversationHistoryProps) => {
+  const t = useTranslations();
   const sortedConversations = useMemo(() => {
     const newConversationArray = structuredClone(conversations);
     newConversationArray.sort((a, b) => {
@@ -131,9 +139,9 @@ const ConversationHistory = ({
               size={48}
               className='mx-auto mb-2 opacity-50'
             />
-            <p className='text-sm'>No conversations yet</p>
+            <p className='text-sm'>{t('conversation.noConversationsYet')}</p>
             <p className='mt-1 text-xs text-gray-600'>
-              Start your first conversation to see it here
+              {t('conversation.startFirstConversation')}
             </p>
           </div>
         ) : (
@@ -146,6 +154,7 @@ const ConversationHistory = ({
               onDeleteConversation={onDeleteConversation}
               onSelectConversation={onConversationSelect}
               selectedConversationIndex={selectedConversationIndex}
+              t={t}
             />
           ))
         )}
@@ -156,7 +165,7 @@ const ConversationHistory = ({
           className='sticky shrink-0 p-px bottom-6 w-[calc(100%-3rem)] left-6 green-to-purple-via-blue-gradient rounded-2xl h-14 cursor-pointer'
         >
           <div className='h-full w-full flex flex-row bg-[#181818] items-center justify-center gap-1 rounded-2xl text-sm'>
-            Nouvelle discussion
+            {t('conversation.newChat')}
             <NewConversation
               width={24}
               height={24}
@@ -177,6 +186,7 @@ interface ConversationCardProps {
   onDeleteConversation: (index: number) => void;
   onSelectConversation: (index: number) => void;
   selectedConversationIndex: number | null;
+  t: (key: string) => string;
 }
 
 const ConversationCard = ({
@@ -185,6 +195,7 @@ const ConversationCard = ({
   onDeleteConversation,
   onSelectConversation,
   selectedConversationIndex,
+  t,
 }: ConversationCardProps) => {
   const originalIndex = useMemo(() => {
     return conversations.findIndex(
@@ -233,11 +244,11 @@ const ConversationCard = ({
               </span>
             </div>
             <div className='text-sm text-white/55'>
-              {formatConversationDate(conversation)}
+              {formatConversationDate(conversation, t)}
             </div>
           </div>
           <div className='px-5 text-sm font-medium line-clamp-2'>
-            {formatConversationPreview(conversation)}
+            {formatConversationPreview(conversation, t)}
           </div>
         </div>
       </button>
@@ -246,7 +257,7 @@ const ConversationCard = ({
         className={cn('absolute right-2 top-2 group-hover:visible', {
           invisible: !isSelected,
         })}
-        title='Delete conversation'
+        title={t('conversation.deleteConversation')}
       >
         <X size={16} />
       </button>

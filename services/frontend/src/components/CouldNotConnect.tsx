@@ -1,4 +1,5 @@
 import { FC, useMemo } from 'react';
+import { useTranslations } from '@/i18n';
 import { cn } from '@/utils/cn';
 
 export type HealthStatus = {
@@ -12,32 +13,34 @@ export type HealthStatus = {
 interface RenderServiceStatusProps {
   name: string;
   status: string | boolean | undefined;
+  t: (key: string) => string;
 }
 
 const RenderServiceStatus: FC<RenderServiceStatusProps> = ({
   name,
   status,
+  t,
 }) => {
   const displayedStatus = useMemo(() => {
     if (status === undefined) {
-      return 'Unknown';
+      return t('common.unknown');
     }
     if (status === true) {
-      return 'Up';
+      return t('common.up');
     }
     if (status === false) {
-      return 'Down';
+      return t('common.down');
     }
     return status;
-  }, [status]);
+  }, [status, t]);
 
   return (
     <p>
       {name}:{' '}
       <span
         className={cn({
-          'text-white': displayedStatus === 'Up',
-          'text-red': displayedStatus !== 'Up',
+          'text-white': displayedStatus === t('common.up'),
+          'text-red': displayedStatus !== t('common.up'),
         })}
       >
         {displayedStatus}
@@ -50,37 +53,43 @@ interface CouldNotConnectProps {
   healthStatus: HealthStatus;
 }
 
-const humanReadableStatus = {
-  no: 'Down',
-  yes_request_ok: 'Up',
-  yes_request_fail: 'Up, but with errors',
-};
-
 const CouldNotConnect: FC<CouldNotConnectProps> = ({ healthStatus }) => {
+  const t = useTranslations();
+
   if (healthStatus.ok) {
     return null;
   }
 
+  const humanReadableStatus = {
+    no: t('common.down'),
+    yes_request_ok: t('common.up'),
+    yes_request_fail: t('connection.upButWithErrors'),
+  };
+
   return (
     <div className='w-full h-full flex flex-col gap-12 items-center justify-center bg-background'>
       <div className='text-center text-xl'>
-        <h1 className='text-3xl mb-4'>Couldn&apos;t connect :(</h1>
-        <p>Service status:</p>
+        <h1 className='text-3xl mb-4'>{t('connection.couldNotConnect')}</h1>
+        <p>{t('connection.serviceStatus')}</p>
         <RenderServiceStatus
-          name='Backend'
+          name={t('connection.backend')}
           status={humanReadableStatus[healthStatus.connected]}
+          t={t}
         />
         <RenderServiceStatus
-          name='STT'
+          name={t('connection.stt')}
           status={healthStatus.stt_up}
+          t={t}
         />
         <RenderServiceStatus
-          name='LLM'
+          name={t('connection.llm')}
           status={healthStatus.llm_up}
+          t={t}
         />
         <RenderServiceStatus
-          name='TTS'
+          name={t('connection.tts')}
           status={healthStatus.tts_up}
+          t={t}
         />
       </div>
     </div>

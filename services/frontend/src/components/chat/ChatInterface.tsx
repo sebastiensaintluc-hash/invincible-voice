@@ -1,7 +1,8 @@
 'use client';
 
 import { useRef, useEffect, Fragment, useCallback, useMemo, FC } from 'react';
-import { ChatMessage } from '@/types/chatHistory';
+import { useTranslations } from '@/i18n';
+import type { ChatMessage } from '@/types/chatHistory';
 import { playTTSStream } from '@/utils/ttsUtil';
 import {
   Conversation,
@@ -41,6 +42,7 @@ const ChatInterface: FC<ChatInterfaceProps> = ({
   pastConversation = undefined,
   isViewingPastConversation = false,
 }) => {
+  const t = useTranslations();
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   const onClickProcessedMessages = useCallback(
@@ -122,17 +124,18 @@ const ChatInterface: FC<ChatInterfaceProps> = ({
     >
       {processedMessages.length === 0 && !isViewingPastConversation && (
         <div className='py-4 text-center text-gray-400'>
-          <p className='mb-2 text-base font-medium'>Ready to chat</p>
-          <p className='text-xs'>
-            Start speaking and your voice will be transcribed. InvincibleVoice
-            will suggest responses to help communicate.
+          <p className='mb-2 text-base font-medium'>
+            {t('conversation.readyToChat')}
           </p>
+          <p className='text-xs'>{t('conversation.startSpeaking')}</p>
         </div>
       )}
       {processedMessages.length === 0 && isViewingPastConversation && (
         <div className='py-4 text-center text-gray-400'>
-          <p className='mb-2 text-base font-medium'>Empty conversation</p>
-          <p className='text-xs'>This conversation has no messages.</p>
+          <p className='mb-2 text-base font-medium'>
+            {t('conversation.emptyConversation')}
+          </p>
+          <p className='text-xs'>{t('conversation.noMessages')}</p>
         </div>
       )}
       {processedMessages.map((message) => (

@@ -21,8 +21,8 @@ import {
   RESPONSES_SIZES,
   ResponseSize,
   STATIC_MESSAGE_UUIDS,
-  STATIC_MESSAGES,
 } from '@/constants';
+import { useTranslations } from '@/i18n';
 import { cn } from '@/utils/cn';
 
 interface ResponseOptionsProps {
@@ -51,6 +51,7 @@ const ResponseOptions: FC<ResponseOptionsProps> = ({
   onSelect,
   responses,
 }) => {
+  const t = useTranslations();
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingText, setEditingText] = useState<string>('');
   const textAreaRefs = useRef<(HTMLTextAreaElement | null)[]>([]);
@@ -96,6 +97,24 @@ const ResponseOptions: FC<ResponseOptionsProps> = ({
     [responses],
   );
   const isFrozen = useMemo(() => frozenResponses !== null, [frozenResponses]);
+  const staticContextOption = useMemo(
+    () => ({
+      id: 'static-context-question',
+      text: t('conversation.contextQuestion'),
+      isComplete: true,
+      messageId: STATIC_MESSAGE_UUIDS.CONTEXT_QUESTION,
+    }),
+    [t],
+  );
+  const staticRepeatOption = useMemo(
+    () => ({
+      id: 'static-repeat-question',
+      text: t('conversation.repeatQuestion'),
+      isComplete: true,
+      messageId: STATIC_MESSAGE_UUIDS.REPEAT_QUESTION,
+    }),
+    [t],
+  );
   const displayResponses = useMemo(() => {
     if (alwaysShow) {
       // When alwaysShow is true, create 4 slots for dynamic responses + 2 static
@@ -111,25 +130,18 @@ const ResponseOptions: FC<ResponseOptionsProps> = ({
         );
       });
 
-      return [
-        ...dynamicResponses,
-        {
-          id: 'static-context-question',
-          text: STATIC_MESSAGES.CONTEXT_QUESTION,
-          isComplete: true,
-          messageId: STATIC_MESSAGE_UUIDS.CONTEXT_QUESTION,
-        },
-        {
-          id: 'static-repeat-question',
-          text: STATIC_MESSAGES.REPEAT_QUESTION,
-          isComplete: true,
-          messageId: STATIC_MESSAGE_UUIDS.REPEAT_QUESTION,
-        },
-      ];
+      return [...dynamicResponses, staticContextOption, staticRepeatOption];
     }
 
     return validResponses;
-  }, [alwaysShow, frozenResponses, responses, validResponses]);
+  }, [
+    alwaysShow,
+    frozenResponses,
+    responses,
+    validResponses,
+    staticContextOption,
+    staticRepeatOption,
+  ]);
   const displayLoadingPlaceholder = useMemo(() => {
     return displayResponses.some((r) => r.text.trim() && !r.isComplete);
   }, [displayResponses]);
@@ -158,7 +170,7 @@ const ResponseOptions: FC<ResponseOptionsProps> = ({
     <div className='flex flex-col gap-4 pb-12'>
       {displayLoadingPlaceholder && (
         <div className='mt-2 text-xs text-center text-gray-500'>
-          Generating responses… Audio will be ready when complete.
+          {t('settings.responsesLoading')} {t('settings.audioWillBeReady')}
         </div>
       )}
       <div className='flex flex-col gap-2'>
@@ -223,11 +235,11 @@ const ResponseOptions: FC<ResponseOptionsProps> = ({
                     !isFrozen,
                 },
               )}
-              title='Freeze the responses so you can select multiple ones'
+              title={t('conversation.freezeResponses')}
             >
               {isFrozen
-                ? 'Dévérouiller les réponses'
-                : 'Vérouiller les réponses'}
+                ? t('conversation.unlockResponses')
+                : t('conversation.lockResponses')}
               {isFrozen ? (
                 <Lock className='w-4 h-4 text-white' />
               ) : (

@@ -37,12 +37,12 @@ class UserSettings(pydantic.BaseModel):
     additional_keywords: list[str]
     friends: list[str]
     documents: list[Document] = pydantic.Field(default_factory=list)
-    thinking_mode: bool = False
     voice: str | None = None
 
 
 class GoogleAuthRequest(pydantic.BaseModel):
     token: str
+    language: str
 
 
 class HealthStatus(pydantic.BaseModel):
