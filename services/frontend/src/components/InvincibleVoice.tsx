@@ -1,6 +1,5 @@
 'use client';
 
-import { Settings } from 'lucide-react';
 import { prettyPrintJson } from 'pretty-print-json';
 import {
   useCallback,
@@ -23,7 +22,6 @@ import ChatInterface, {
 } from '@/components/chat/ChatInterface';
 import ConfirmationDialog from '@/components/conversations/ConfirmationDialog';
 import ConversationHistory from '@/components/conversations/ConversationHistory';
-import NewConversation from '@/components/icons/NewConversation';
 import Pause from '@/components/icons/Pause';
 import Reply from '@/components/icons/Reply';
 import MobileConversationLayout from '@/components/mobile/MobileConversationLayout';
@@ -33,11 +31,9 @@ import ErrorMessages, {
   ErrorItem,
   makeErrorItem,
 } from '@/components/ui/ErrorMessages';
-import {
-  ResponseSize,
-  RESPONSES_SIZES,
-  ORDERED_RESPONSE_SIZES,
-} from '@/constants';
+import SettingsButton from '@/components/ui/SettingsButton';
+import StartConversationButton from '@/components/ui/StartConversationButton';
+import { ResponseSize, RESPONSES_SIZES } from '@/constants';
 import { useAudioProcessor } from '@/hooks/useAudioProcessor';
 import { useBackendServerUrl } from '@/hooks/useBackendServerUrl';
 import useKeyboardShortcuts from '@/hooks/useKeyboardShortcuts';
@@ -340,30 +336,7 @@ const InvincibleVoice = () => {
     },
     [sendMessage],
   );
-  const handleResponseSizeChange = useCallback(
-    (direction: 'prev' | 'next') => {
-      const currentIndex = ORDERED_RESPONSE_SIZES.indexOf(responseSize);
-      let newIndex;
 
-      if (direction === 'next') {
-        newIndex = (currentIndex + 1) % ORDERED_RESPONSE_SIZES.length;
-      } else {
-        newIndex =
-          (currentIndex - 1 + ORDERED_RESPONSE_SIZES.length) %
-          ORDERED_RESPONSE_SIZES.length;
-      }
-
-      const newSize = ORDERED_RESPONSE_SIZES[newIndex];
-      setResponseSize(newSize);
-      sendMessage(
-        JSON.stringify({
-          type: 'desired.responses.length',
-          length: newSize,
-        }),
-      );
-    },
-    [responseSize, sendMessage],
-  );
   const handleResponseSelection = useCallback(
     async (responseId: string) => {
       if (
@@ -1072,35 +1045,20 @@ const InvincibleVoice = () => {
   // Mobile layout
   if (isMobile) {
     return (
-      <div className='flex flex-col w-full h-screen text-white bg-background'>
+      <div className='flex flex-col w-full h-screen text-white'>
         <ErrorMessages
           errors={errors}
           setErrors={setErrors}
         />
         {!shouldConnect && !isViewingPastConversation && (
-          <MobileNoConversation
-            conversations={userData?.conversations || []}
-            selectedConversationIndex={selectedConversationIndex}
-            onConversationSelect={handleConversationSelect}
-            onNewConversation={handleNewConversation}
-            onDeleteConversation={handleDeleteConversation}
-            onConnectButtonPress={onConnectButtonPress}
-            onSettingsOpen={handleSettingsOpen}
-          />
+          <MobileNoConversation onConnectButtonPress={onConnectButtonPress} />
         )}
         {shouldConnect && !isViewingPastConversation && (
           <MobileConversationLayout
-            userData={userData}
-            onWordBubbleClick={handleWordBubbleClick}
-            pendingKeywords={pendingKeywords}
-            onKeywordSelect={handleKeywordSelect}
             textInput={textInput}
             onTextInputChange={handleTextInputChange}
             onSendMessage={handleSendMessage}
-            responseSize={responseSize}
-            onResponseSizeChange={handleResponseSizeChange}
             frozenResponses={frozenResponses}
-            onFreezeToggle={handleFreezeToggle}
             pendingResponses={pendingResponses}
             onResponseSelect={handleResponseSelection}
             onResponseEdit={onResponseEdit}
@@ -1150,19 +1108,10 @@ const InvincibleVoice = () => {
         <div className='relative z-0 grid grow h-screen grid-cols-2 overflow-hidden'>
           {!shouldConnect && !isViewingPastConversation && (
             <div className='absolute inset-0 z-20 flex items-center justify-center pointer-events-none'>
-              <button
+              <StartConversationButton
                 onClick={onConnectButtonPress}
-                className='shrink-0 p-px cursor-pointer pointer-events-auto green-to-purple-via-blue-gradient rounded-2xl h-14'
-              >
-                <div className='h-full w-full flex flex-row bg-[#181818] items-center justify-center gap-2 rounded-2xl text-sm px-8'>
-                  {t('conversation.startChatting')}
-                  <NewConversation
-                    width={24}
-                    height={24}
-                    className='shrink-0 text-white'
-                  />
-                </div>
-              </button>
+                label={t('conversation.startChatting')}
+              />
             </div>
           )}
           {!shouldConnect && !isViewingPastConversation && (
@@ -1231,18 +1180,11 @@ const InvincibleVoice = () => {
           <div className='relative z-0 flex flex-col h-screen gap-4 px-4 pt-6 overflow-y-auto pb-14'>
             {!shouldConnect && !isViewingPastConversation && (
               <div className='flex flex-row items-center justify-end h-10'>
-                <button
+                <SettingsButton
                   onClick={handleSettingsOpen}
-                  className='shrink-0 h-10 p-px cursor-pointer orange-to-light-orange-gradient rounded-2xl'
-                  style={{
-                    filter: 'drop-shadow(0rem 0.2rem 0.15rem var(--darkgray))',
-                  }}
-                >
-                  <div className='h-full w-full flex flex-row bg-[#181818] items-center justify-center gap-2 rounded-2xl text-sm px-5'>
-                    {t('settings.changeSettings')}
-                    <Settings size={20} />
-                  </div>
-                </button>
+                  label={t('settings.changeSettings')}
+                  variant='full'
+                />
               </div>
             )}
             {shouldConnect && !isViewingPastConversation && (
